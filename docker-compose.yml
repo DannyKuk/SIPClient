@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     labels:
       - traefik.enable=true
-      - traefik.http.routers.sipclient.rule=Host(`sipclient.qntrol.eu`)
+      - traefik.http.routers.sipclient.rule=Host(`domain.com`)
       - traefik.http.services.sipclient.loadbalancer.server.port=3000
     ports:
       - '3000:3000'
