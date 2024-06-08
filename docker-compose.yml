@@ -1,0 +1,27 @@
+version: '3'
+services:
+  sipClientTest:
+    container_name: SIPClientTest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.custompbx.rule=Host(`sipclient.qntrol.eu`)
+      - traefik.http.services.custompbx.loadbalancer.server.port=3000
+    ports:
+      - '3000:3000'
+    depends_on:
+      - freeswitch
+
+  freeswitch-SIPTest:
+    container_name: SIPClientTestFreeSwitch
+    build:
+      context: ./freeswitch
+      dockerfile: Dockerfile
+    ports:
+      - '5060:5060/udp'
+      - '5061:5061/tcp'
+      - '5080:5080/tcp'
+      - '5081:5081/tcp'
+      - '8021:8021/tcp'

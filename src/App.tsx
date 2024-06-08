@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import './App.css';
-import Home from './Home';
-import SipClient from './SipClient';
-import SimpleSipClient from './SimpleSipClient';
+import Home from './components/Home';
+import SipClient from './components/SipClient';
+import SimpleSipClient from './components/SimpleSipClient';
 
 const App: React.FC = () => {
   const [clientType, setClientType] = useState<'standard' | 'simple' | null>(null);
