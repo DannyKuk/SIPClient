@@ -1,13 +1,13 @@
 version: '3'
 services:
-  react-app:
+  sipclient:
     container_name: SIPClientTest
     build:
       context: .
       dockerfile: Dockerfile
     labels:
       - traefik.enable=true
-      - traefik.http.routers.custompbx.rule=Host(`sipclient.qntrol.eu`)
-      - traefik.http.services.custompbx.loadbalancer.server.port=3000
+      - traefik.http.routers.sipclient.rule=Host(`sipclient.qntrol.eu`)
+      - traefik.http.services.sipclient.loadbalancer.server.port=3000
     ports:
       - '3000:3000'
