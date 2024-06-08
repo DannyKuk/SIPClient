@@ -1,6 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { SimpleUser, SimpleUserOptions } from 'sip.js/lib/platform/web';
 import { InviterOptions } from 'sip.js';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
 
 interface SimpleSipClientProps {
   onBack: () => void;
@@ -101,59 +104,66 @@ const SimpleSipClient: React.FC<SimpleSipClientProps> = ({ onBack }) => {
 
   return (
     <div>
-      <h1>SimpleUser SIP Client</h1>
+      <h1 style={{color: '#8ecae6'}}>SimpleUser SIP Client</h1>
       <div>
         {isRegistered ? (
           <p>Registered</p>
         ) : (
           <form>
             <div>
-              <label>
-                SIP Server:
-                <input type="text" value={sipServer} onChange={(e) => setSipServer(e.target.value)} />
-              </label>
+              <TextField id="standard-basic" label="SIP Server" onChange={(e) => setSipServer(e.target.value)} variant="standard" color="primary" style={{width: '400px', margin: '10px'}}/>
+                {/*
+                <label>
+                  SIP Server:
+                  <input type="text" value={sipServer} onChange={(e) => setSipServer(e.target.value)} />
+                </label>
+                */}
             </div>
             <div>
+              <TextField id="standard-basic" label="Username" onChange={(e) => setUsername(e.target.value)} variant="standard" color="primary" style={{width: '400px', margin: '10px'}}/>
+              {/*
               <label>
                 Username:
                 <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
               </label>
+              */}
             </div>
             <div>
-              <label>
-                Password:
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-              </label>
+              <TextField id="standard-basic" label="Password" onChange={(e) => setPassword(e.target.value)} variant="standard" color="primary" style={{width: '400px', margin: '10px'}}/>
+                {/*
+                <label>
+                  Password:
+                  <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                </label>
+                */}
             </div>
+            <Button style={{width: '150px', margin: '50px'}} color='success' onClick={handleRegister} variant='outlined'>Register</Button>
+            {/*
             <button type="button" onClick={handleRegister}>
               Register
             </button>
+            */}
           </form>
         )}
       </div>
       <div>
-        <label>
-          Target:
-          <input type="text" value={target} onChange={(e) => setTarget(e.target.value)} disabled={!isRegistered} />
-        </label>
+        <TextField id="standard-basic" label="Target" onChange={(e) => setTarget(e.target.value)} disabled={!isRegistered} variant="standard" color="primary" style={{width: '400px', margin: '10px'}}/>
+          {/*
+          <label>
+            Target:
+            <input type="text" value={target} onChange={(e) => setTarget(e.target.value)} disabled={!isRegistered} />
+          </label>
+          */}
       </div>
-      <div>
-        <button onClick={() => handleCall(false)} disabled={!isRegistered || !target}>
-          Call (Audio)
-        </button>
-        <button onClick={() => handleCall(true)} disabled={!isRegistered || !target}>
-          Call (Video)
-        </button>
-      </div>
-      <div>
-        <button onClick={handleHold} disabled={!isInCall}>
-          Hold
-        </button>
-        <button onClick={handleHangup} disabled={!isInCall}>
-          Hang Up
-        </button>
-      </div>
-      <button onClick={onBack} disabled={isInCall}>Back to Home</button>
+        <Stack direction="row" alignItems="center" justifyContent="center" spacing={3}>
+          <Button style={{width: '100px', margin: '5px'}} onClick={handleHold} disabled={!isInCall} variant='outlined' color='secondary'>Hold</Button>
+          <Button style={{width: '100px', margin: '5px'}} onClick={handleHangup} disabled={!isInCall} variant='outlined' color='error'>Hang Up</Button>
+        </Stack>
+        <Stack direction="row" alignItems="center" justifyContent="center" spacing={3}>
+          <Button style={{width: '180px', margin: '10px'}} onClick={() => handleCall(false)} disabled={!isRegistered || !target} variant='contained' color='success'>Call (Audio)</Button>
+          <Button style={{width: '180px', margin: '10px'}} onClick={() => handleCall(true)} disabled={!isRegistered || !target} variant='outlined' color='success'>Call (Video)</Button>
+        </Stack>
+      <Button style={{width: '150px', margin: '50px'}} onClick={onBack} disabled={isInCall} variant='outlined'>Back to Home</Button>
       <div>
         <video ref={localVideoRef} autoPlay playsInline />
         <video ref={remoteVideoRef} autoPlay playsInline />
