@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { SimpleUser, SimpleUserOptions } from 'sip.js/lib/platform/web';
+import { InviterOptions } from 'sip.js';
 
 interface SimpleSipClientProps {
   onBack: () => void;
@@ -9,11 +10,15 @@ const SimpleSipClient: React.FC<SimpleSipClientProps> = ({ onBack }) => {
   const [userAgent, setUserAgent] = useState<SimpleUser | null>(null);
   const [isRegistered, setIsRegistered] = useState(false);
   const [isInCall, setIsInCall] = useState(false);
+  const [isOnHold, setIsOnHold] = useState(false);
 
   const [sipServer, setSipServer] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [target, setTarget] = useState('');
+
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
   const handleRegister = () => {
     const uri = `sip:${username}@${sipServer}`;
@@ -22,10 +27,13 @@ const SimpleSipClient: React.FC<SimpleSipClientProps> = ({ onBack }) => {
     const options: SimpleUserOptions = {
       aor: uri,
       media: {
-        constraints: { audio: true, video: false },
+        constraints: { audio: true, video: true },
+        local: {
+          video: localVideoRef.current ?? undefined,
+        },
         remote: {
-          audio: document.getElementById('remoteAudio') as HTMLAudioElement,
-        }
+          video: remoteVideoRef.current ?? undefined,
+        },
       },
       userAgentOptions: {
         authorizationUsername: username,
@@ -33,6 +41,11 @@ const SimpleSipClient: React.FC<SimpleSipClientProps> = ({ onBack }) => {
         transportOptions: {
           server: webSocketServer,
         },
+        sessionDescriptionHandlerFactoryOptions: {
+          peerConnectionConfiguration: {
+            iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+          }
+        }
       },
     };
 
@@ -46,7 +59,7 @@ const SimpleSipClient: React.FC<SimpleSipClientProps> = ({ onBack }) => {
         setIsInCall(true);
       },
       onCallHangup: () => setIsInCall(false),
-      onCallAnswered: () => setIsInCall(true)
+      onCallAnswered: () => setIsInCall(true),
     };
 
     simpleUser.connect().then(() => simpleUser.register());
@@ -54,9 +67,15 @@ const SimpleSipClient: React.FC<SimpleSipClientProps> = ({ onBack }) => {
     setUserAgent(simpleUser);
   };
 
-  const handleCall = () => {
+  const handleCall = (isVideoCall: boolean) => {
     if (userAgent) {
-      userAgent.call(`sip:${target}@${sipServer}`);
+      const inviterOptions: InviterOptions = {
+        sessionDescriptionHandlerOptions: {
+          constraints: { audio: true, video: isVideoCall }
+        }
+      };
+
+      userAgent.call(`sip:${target}@${sipServer}`, inviterOptions);
       setIsInCall(true);
     }
   };
@@ -65,6 +84,18 @@ const SimpleSipClient: React.FC<SimpleSipClientProps> = ({ onBack }) => {
     if (userAgent) {
       userAgent.hangup();
       setIsInCall(false);
+    }
+  };
+
+  const handleHold = () => {
+    if (userAgent) {
+      if (!isOnHold) {
+        userAgent.hold();
+        setIsOnHold(true);
+      } else {
+        userAgent.unhold();
+        setIsOnHold(false);
+      }
     }
   };
 
@@ -106,14 +137,27 @@ const SimpleSipClient: React.FC<SimpleSipClientProps> = ({ onBack }) => {
           <input type="text" value={target} onChange={(e) => setTarget(e.target.value)} disabled={!isRegistered} />
         </label>
       </div>
-      <button onClick={handleCall} disabled={!isRegistered || !target}>
-        Call
-      </button>
-      <button onClick={handleHangup} disabled={!isInCall}>
-        Hang Up
-      </button>
-      <button onClick={onBack}>Back to Home</button>
-      <audio id="remoteAudio" />
+      <div>
+        <button onClick={() => handleCall(false)} disabled={!isRegistered || !target}>
+          Call (Audio)
+        </button>
+        <button onClick={() => handleCall(true)} disabled={!isRegistered || !target}>
+          Call (Video)
+        </button>
+      </div>
+      <div>
+        <button onClick={handleHold} disabled={!isInCall}>
+          Hold
+        </button>
+        <button onClick={handleHangup} disabled={!isInCall}>
+          Hang Up
+        </button>
+      </div>
+      <button onClick={onBack} disabled={isInCall}>Back to Home</button>
+      <div>
+        <video ref={localVideoRef} autoPlay playsInline />
+        <video ref={remoteVideoRef} autoPlay playsInline />
+      </div>
     </div>
   );
 };

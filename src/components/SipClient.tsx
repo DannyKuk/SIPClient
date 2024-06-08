@@ -125,7 +125,9 @@ const SipClient: React.FC<SipClientProps> = ({ onBack }) => {
       <button onClick={handleHangup} disabled={!session}>
         Hang Up
       </button>
-      <button onClick={onBack}>Back to Home</button>
+      <div>
+        <button onClick={onBack}>Back to Home</button>
+      </div>
     </div>
   );
 };
