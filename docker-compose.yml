@@ -11,3 +11,10 @@ services:
       - traefik.http.services.sipclient.loadbalancer.server.port=3000
     ports:
       - '3000:3000'
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    name: proxy
+    external: true
