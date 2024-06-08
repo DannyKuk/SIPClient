@@ -1,26 +1,25 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useState } from 'react';
 import './App.css';
+import Home from './Home';
+import SipClient from './SipClient';
+import SimpleSipClient from './SimpleSipClient';
 
-function App() {
+const App: React.FC = () => {
+  const [clientType, setClientType] = useState<'standard' | 'simple' | null>(null);
+
+  const handleBack = () => {
+    setClientType(null);
+  };
+
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        {clientType === null && <Home setClientType={setClientType} />}
+        {clientType === 'standard' && <SipClient onBack={handleBack} />}
+        {clientType === 'simple' && <SimpleSipClient onBack={handleBack} />}
       </header>
     </div>
   );
-}
+};
 
 export default App;
