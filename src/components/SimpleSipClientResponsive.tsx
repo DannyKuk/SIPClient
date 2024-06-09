@@ -2,12 +2,16 @@ import React, { useState, useRef } from 'react';
 import { SimpleUser, SimpleUserOptions } from 'sip.js/lib/platform/web';
 import { InviterOptions } from 'sip.js';
 import Button from '@mui/material/Button';
-import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Snackbar from '@mui/material/Snackbar';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import PauseIcon from '@mui/icons-material/Pause';
+import CallEndIcon from '@mui/icons-material/CallEnd';
+import DialerSipIcon from '@mui/icons-material/DialerSip';
+import VideoCallIcon from '@mui/icons-material/VideoCall';
+import Fab from '@mui/material/Fab';
 
 interface SimpleSipClientResponsiveProps {
   onBack: () => void;
@@ -18,6 +22,8 @@ const SimpleSipClientResponsive: React.FC<SimpleSipClientResponsiveProps> = ({ o
   const [isRegistered, setIsRegistered] = useState(false);
   const [isInCall, setIsInCall] = useState(false);
   const [isOnHold, setIsOnHold] = useState(false);
+  const [message, setMessage] = useState('');
+  const [messages, setMessages] = useState<string[]>([]);
 
   const [sipServer, setSipServer] = useState('');
   const [webSocketServer, setWebSocketServer] = useState('');
@@ -80,17 +86,44 @@ const SimpleSipClientResponsive: React.FC<SimpleSipClientResponsiveProps> = ({ o
     const simpleUser = new SimpleUser(uri, options);
 
     simpleUser.delegate = {
-      onRegistered: () => registration(true),
-      onUnregistered: () => registration(false),
+      onRegistered: () => {
+        console.log('Registered successfully');
+        registration(true);
+      },
+      onUnregistered: () => {
+        console.log('Unregistered');
+        registration(false);
+      },
       onCallReceived: async () => {
-        await simpleUser.answer();
+        console.log('Call received');
+        try {
+          await simpleUser.answer();
+          console.log('Call answered');
+          setIsInCall(true);
+        } catch (error) {
+          console.error('Error answering call:', error);
+        }
+      },
+      onCallHangup: () => {
+        console.log('Call hung up');
+        setIsInCall(false);
+      },
+      onCallAnswered: () => {
+        console.log('Call answered successfully');
         setIsInCall(true);
       },
-      onCallHangup: () => setIsInCall(false),
-      onCallAnswered: () => setIsInCall(true),
+      onMessageReceived: (message) => {
+        console.log('Message received:', message);
+        setMessages((prevMessages) => [...prevMessages, `Them: ${message}`]);
+      },
     };
 
-    simpleUser.connect().then(() => simpleUser.register());
+    simpleUser.connect().then(() => {
+      simpleUser.register();
+      console.log('Connected and registering');
+    }).catch(error => {
+      console.error('Connection error:', error);
+    });
 
     setUserAgent(simpleUser);
   };
@@ -127,9 +160,17 @@ const SimpleSipClientResponsive: React.FC<SimpleSipClientResponsiveProps> = ({ o
     }
   };
 
+  const handleSendMessage = () => {
+    if (userAgent && target && message) {
+      userAgent.message(`sip:${target}@${sipServer}`, message);
+      setMessages((prevMessages) => [...prevMessages, `You: ${message}`]);
+      setMessage('');
+    }
+  };
+
   return (
     <Box sx={{ p: 2 }}>
-      <Typography variant="h4" align="center" sx={{ color: '#8ecae6', mb: 3 }}>{"SimpleUser SIP Client (Respnsoive | Experimental)"}</Typography>
+      <Typography variant="h4" align="center" sx={{ color: '#8ecae6', mb: 3 }}>{"SimpleUser SIP Client (Responsive | Experimental)"}</Typography>
       <Grid container spacing={2}>
         {isRegistered ? (
           <Grid item xs={12}>
@@ -205,53 +246,69 @@ const SimpleSipClientResponsive: React.FC<SimpleSipClientResponsiveProps> = ({ o
             sx={{ mb: 2 }}
           />
         </Grid>
-        <Grid item xs={6} sm={4}>
+
+        {isInCall ? (
+          <Grid container spacing={3} direction={'row'} justifyContent={'center'}>
+            <Grid item xs={6} sm={4}>
+              <Fab color="secondary" aria-label="hold" onClick={handleHold} disabled={!isInCall}>
+                <PauseIcon />
+              </Fab>
+            </Grid>
+            <Grid item xs={6} sm={4}>
+              <Fab color="error" aria-label="hangup" onClick={handleHangup}>
+                <CallEndIcon />
+              </Fab>
+            </Grid>
+          </Grid>
+        ) : (
+          <Grid container spacing={3} direction={'row'} justifyContent={'center'}>
+            <Grid item xs={6} sm={4}>
+              <Fab color="success" aria-label="audicall" onClick={() => handleCall(false)}>
+                <DialerSipIcon />
+              </Fab>
+            </Grid>
+            <Grid item xs={6} sm={4}>
+              <Fab color="success" aria-label="videocall" onClick={() => handleCall(true)}>
+                <VideoCallIcon />
+              </Fab>
+            </Grid>
+          </Grid>
+        )}
+      </Grid>
+
+      <Grid container spacing={2} direction="column" sx={{ mt: 2 }}>
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label="Message"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            disabled={!isRegistered}
+            variant="standard"
+            color="primary"
+            sx={{ mb: 2 }}
+          />
+        </Grid>
+        <Grid item xs={12}>
           <Button
             fullWidth
-            onClick={handleHold}
-            disabled={!isInCall}
+            color='primary'
+            onClick={handleSendMessage}
+            disabled={!isRegistered || !message}
             variant='outlined'
-            color='secondary'
           >
-            Hold
+            Send Message
           </Button>
         </Grid>
-        <Grid item xs={6} sm={4}>
-          <Button
-            fullWidth
-            onClick={handleHangup}
-            disabled={!isInCall}
-            variant='outlined'
-            color='error'
-          >
-            Hang Up
-          </Button>
+        <Grid item xs={12}>
+          <Box sx={{ maxHeight: '200px', overflowY: 'auto', mt: 2 }}>
+            {messages.map((msg, index) => (
+              <Typography key={index} variant="body2">{msg}</Typography>
+            ))}
+          </Box>
         </Grid>
       </Grid>
-      <Grid container spacing={2} sx={{ mt: 2 }}>
-        <Grid item xs={6}>
-          <Button
-            fullWidth
-            onClick={() => handleCall(false)}
-            disabled={!isRegistered || !target || isInCall}
-            variant='contained'
-            color='success'
-          >
-            Call (Audio)
-          </Button>
-        </Grid>
-        <Grid item xs={6}>
-          <Button
-            fullWidth
-            onClick={() => handleCall(true)}
-            disabled={!isRegistered || !target || isInCall}
-            variant='outlined'
-            color='success'
-          >
-            Call (Video)
-          </Button>
-        </Grid>
-      </Grid>
+
       <Grid container spacing={2} sx={{ mt: 4 }}>
         <Grid item xs={12}>
           <Button

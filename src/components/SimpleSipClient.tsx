@@ -47,7 +47,7 @@ const SimpleSipClient: React.FC<SimpleSipClientProps> = ({ onBack }) => {
 
   const handleRegister = () => {
     const uri = `sip:${username}@${sipServer}`;
-    const webSocketServerUrl = `wss://${webSocketServer}/ws`;
+    const webSocketServerUrl = `wss://${webSocketServer}`;
 
     const options: SimpleUserOptions = {
       aor: uri,
