@@ -4,6 +4,7 @@ import { InviterOptions } from 'sip.js';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
+import Snackbar from '@mui/material/Snackbar';
 
 interface SimpleSipClientProps {
   onBack: () => void;
@@ -21,8 +22,28 @@ const SimpleSipClient: React.FC<SimpleSipClientProps> = ({ onBack }) => {
   const [password, setPassword] = useState('');
   const [target, setTarget] = useState('');
 
+  const [open, setOpen] = React.useState(false);
+
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
+
+  const registration = (register: boolean) => {
+    if (register) {
+      setOpen(true);
+      setIsRegistered(true);
+    } else {
+      setOpen(false);
+      setIsRegistered(false);
+    }
+  };
+
+  const handleClose = (event: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setOpen(false);
+  };
 
   const handleRegister = () => {
     const uri = `sip:${username}@${sipServer}`;
@@ -56,8 +77,8 @@ const SimpleSipClient: React.FC<SimpleSipClientProps> = ({ onBack }) => {
     const simpleUser = new SimpleUser(uri, options);
 
     simpleUser.delegate = {
-      onRegistered: () => setIsRegistered(true),
-      onUnregistered: () => setIsRegistered(false),
+      onRegistered: () => registration(true),
+      onUnregistered: () => registration(false),
       onCallReceived: async () => {
         await simpleUser.answer();
         setIsInCall(true);
@@ -108,7 +129,7 @@ const SimpleSipClient: React.FC<SimpleSipClientProps> = ({ onBack }) => {
       <h1 style={{color: '#8ecae6'}}>SimpleUser SIP Client</h1>
       <div>
         {isRegistered ? (
-          <p>Registered</p>
+          <p>Registered as {username}</p>
         ) : (
           <form>
             <div>
@@ -139,6 +160,12 @@ const SimpleSipClient: React.FC<SimpleSipClientProps> = ({ onBack }) => {
         <Button style={{width: '180px', margin: '10px'}} onClick={() => handleCall(true)} disabled={!isRegistered || !target} variant='outlined' color='success'>Call (Video)</Button>
       </Stack>
       <Button style={{width: '150px', margin: '50px'}} onClick={onBack} disabled={isInCall} variant='outlined'>Back to Home</Button>
+      <Snackbar
+        open={open}
+        autoHideDuration={5000}
+        message="Registered"
+        onClose={handleClose}
+      />
       <div>
         <video ref={localVideoRef} autoPlay playsInline />
         <video ref={remoteVideoRef} autoPlay playsInline />
