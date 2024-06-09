@@ -24,6 +24,7 @@ const SimpleSipClientResponsive: React.FC<SimpleSipClientResponsiveProps> = ({ o
   const [isOnHold, setIsOnHold] = useState(false);
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<string[]>([]);
+  const [isReceivingCall, setIsReceivingCall] = useState(false);
 
   const [sipServer, setSipServer] = useState('');
   const [webSocketServer, setWebSocketServer] = useState('');
@@ -59,40 +60,32 @@ const SimpleSipClientResponsive: React.FC<SimpleSipClientResponsiveProps> = ({ o
     const webSocketServerUrl = `wss://${webSocketServer}/ws`;
   
     const options: SimpleUserOptions = {
-        aor: uri,
-        media: {
-          constraints: { audio: true, video: true },
-          local: {
-            video: localVideoRef.current ?? undefined,
-          },
-          remote: {
-            video: remoteVideoRef.current ?? undefined,
+      aor: uri,
+      media: {
+        constraints: { audio: true, video: true },
+        local: {
+          video: localVideoRef.current ?? undefined,
+        },
+        remote: {
+          video: remoteVideoRef.current ?? undefined,
+        },
+      },
+      userAgentOptions: {
+        authorizationUsername: username,
+        authorizationPassword: password,
+        transportOptions: {
+          server: webSocketServerUrl,
+        },
+        sessionDescriptionHandlerFactoryOptions: {
+          peerConnectionConfiguration: {
+            iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+            rtcpMuxPolicy: 'require',
+            bundlePolicy: 'max-bundle',
+            sdpSemantics: 'unified-plan',
           },
         },
-        userAgentOptions: {
-          authorizationUsername: username,
-          authorizationPassword: password,
-          transportOptions: {
-            server: webSocketServerUrl,
-          },
-          sessionDescriptionHandlerFactoryOptions: {
-            peerConnectionConfiguration: {
-              iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
-              rtcpMuxPolicy: 'require',
-              bundlePolicy: 'max-bundle',
-              // Hier fügen wir DTLS-SRTP hinzu
-              sdpSemantics: 'unified-plan',
-              mandatory: {
-                OfferToReceiveAudio: true,
-                OfferToReceiveVideo: true
-              },
-              optional: [{
-                DtlsSrtpKeyAgreement: true
-              }]
-            }
-          }
-        },
-      };
+      },
+    };
   
     const simpleUser = new SimpleUser(uri, options);
   
@@ -107,13 +100,7 @@ const SimpleSipClientResponsive: React.FC<SimpleSipClientResponsiveProps> = ({ o
       },
       onCallReceived: async () => {
         console.log('Call received');
-        try {
-          await simpleUser.answer();
-          console.log('Call answered');
-          setIsInCall(true);
-        } catch (error) {
-          console.error('Error answering call:', error);
-        }
+        setIsReceivingCall(true);
       },
       onCallHangup: () => {
         console.log('Call hung up');
@@ -130,8 +117,10 @@ const SimpleSipClientResponsive: React.FC<SimpleSipClientResponsiveProps> = ({ o
     };
   
     simpleUser.connect().then(() => {
-      simpleUser.register();
-      console.log('Connected and registering');
+      console.log('Connected');
+      return simpleUser.register();
+    }).then(() => {
+      console.log('Registered');
     }).catch(error => {
       console.error('Connection error:', error);
     });
@@ -147,7 +136,7 @@ const SimpleSipClientResponsive: React.FC<SimpleSipClientResponsiveProps> = ({ o
         }
       };
 
-      userAgent.call(`sip:${target}@${sipServer}`, inviterOptions);
+      userAgent.call(`sip:${target}`, inviterOptions);
       setIsInCall(true);
     }
   };
@@ -156,6 +145,7 @@ const SimpleSipClientResponsive: React.FC<SimpleSipClientResponsiveProps> = ({ o
     if (userAgent) {
       userAgent.hangup();
       setIsInCall(false);
+      setIsReceivingCall(false);
     }
   };
 
@@ -168,6 +158,20 @@ const SimpleSipClientResponsive: React.FC<SimpleSipClientResponsiveProps> = ({ o
         userAgent.unhold();
         setIsOnHold(false);
       }
+    }
+  };
+
+  const handleAccept = async () => {
+    if (userAgent && isReceivingCall) {
+        setIsReceivingCall(false);
+        console.log('Call received');
+        try {
+          await userAgent.answer();
+          console.log('Call answered');
+          setIsInCall(true);
+        } catch (error) {
+          console.error('Error answering call:', error);
+        }
     }
   };
 
@@ -318,6 +322,36 @@ const SimpleSipClientResponsive: React.FC<SimpleSipClientResponsiveProps> = ({ o
             ))}
           </Box>
         </Grid>
+      </Grid>
+
+      {isReceivingCall ? (
+        <Grid container spacing={3} direction={'column'} justifyContent={'center'}>
+            <Grid item xs={6} sm={4}>
+                Incoming Call
+            </Grid>
+            <Grid item xs={6} sm={4}>
+                <Grid container spacing={3} direction={'row'} justifyContent={'center'}>
+                    <Grid item xs={6} sm={4}>
+                        <Fab color="success" aria-label="acceptIncoming" onClick={handleAccept}>
+                            <DialerSipIcon />
+                        </Fab>
+                    </Grid>
+                    <Grid item xs={6} sm={4}>
+                        <Fab color="error" aria-label="hangup" onClick={handleHangup}>
+                            <CallEndIcon />
+                        </Fab>
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Grid>
+        
+      ) : (
+        <div>
+        </div>
+      )}
+
+      <Grid container spacing={2} sx={{ mt: 4 }}>
+
       </Grid>
 
       <Grid container spacing={2} sx={{ mt: 4 }}>
