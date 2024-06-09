@@ -137,7 +137,7 @@ const SimpleSipClientResponsive: React.FC<SimpleSipClientResponsiveProps> = ({ o
           </Grid>
         ) : (
           <Grid item xs={12}>
-            <Grid container spacing={2}>
+            <Grid container spacing={2} direction="column">
               <Grid item xs={12} sm={6} md={4}>
                 <TextField
                   fullWidth
@@ -193,7 +193,7 @@ const SimpleSipClientResponsive: React.FC<SimpleSipClientResponsiveProps> = ({ o
           </Grid>
         )}
       </Grid>
-      <Grid container spacing={2}>
+      <Grid container spacing={2} direction="column">
         <Grid item xs={12}>
           <TextField
             fullWidth
@@ -233,7 +233,7 @@ const SimpleSipClientResponsive: React.FC<SimpleSipClientResponsiveProps> = ({ o
           <Button
             fullWidth
             onClick={() => handleCall(false)}
-            disabled={!isRegistered || !target}
+            disabled={!isRegistered || !target || isInCall}
             variant='contained'
             color='success'
           >
@@ -244,7 +244,7 @@ const SimpleSipClientResponsive: React.FC<SimpleSipClientResponsiveProps> = ({ o
           <Button
             fullWidth
             onClick={() => handleCall(true)}
-            disabled={!isRegistered || !target}
+            disabled={!isRegistered || !target || isInCall}
             variant='outlined'
             color='success'
           >
