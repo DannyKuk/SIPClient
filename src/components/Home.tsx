@@ -3,7 +3,7 @@ import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 
 interface HomeProps {
-  setClientType: (type: 'standard' | 'simple') => void;
+  setClientType: (type: 'standard' | 'simple' | 'simpleresponsive') => void;
 }
 
 const Home: React.FC<HomeProps> = ({ setClientType }) => {
@@ -14,6 +14,7 @@ const Home: React.FC<HomeProps> = ({ setClientType }) => {
         <Button variant='outlined' onClick={() => setClientType('standard')}>Standard SIP Client</Button>
         <Button variant='outlined' onClick={() => setClientType('simple')}>SimpleUser SIP Client</Button>
       </Stack>
+      <Button variant='outlined' onClick={() => setClientType('simpleresponsive')}>{"SimpleUser SIP Client (Responsive | Experimental)"}</Button>
     </div>
   );
 };
