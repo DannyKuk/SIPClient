@@ -21,20 +21,23 @@ const theme = createTheme({
         root: {
           '& .MuiOutlinedInput-root': {
             '& fieldset': {
-              borderColor: '#8ecae6', // Change the border color
+              borderColor: '#8ecae6', // Border color
             },
             '&:hover fieldset': {
-              borderColor: '#8ecae6', // Change the border color on hover
+              borderColor: '#8ecae6', // Hover color
             },
             '&.Mui-focused fieldset': {
-              borderColor: '#8ecae6', // Change the border color when focused
+              borderColor: '#8ecae6', // Focus color
             },
           },
           '& .MuiInputLabel-root': {
-            color: '#8ecae6', // Change the label color
+            color: '#8ecae6', // Label color
           },
           '& .MuiInputLabel-root.Mui-focused': {
-            color: '#8ecae6', // Change the label color when focused
+            color: '#8ecae6', // Focused label color
+          },
+          input: {
+            color: "#f7fff7", // Text Color
           },
         },
       },

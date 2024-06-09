@@ -16,7 +16,6 @@ const SimpleSipClient: React.FC<SimpleSipClientProps> = ({ onBack }) => {
   const [isOnHold, setIsOnHold] = useState(false);
 
   const [sipServer, setSipServer] = useState('');
-  const [webSocketServer, setWebSocketServer] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [target, setTarget] = useState('');
@@ -26,7 +25,7 @@ const SimpleSipClient: React.FC<SimpleSipClientProps> = ({ onBack }) => {
 
   const handleRegister = () => {
     const uri = `sip:${username}@${sipServer}`;
-    const webSocketServerUrl = `wss://${webSocketServer}/ws`;
+    const webSocketServer = `wss://${sipServer}/ws`;
 
     const options: SimpleUserOptions = {
       aor: uri,
@@ -43,7 +42,7 @@ const SimpleSipClient: React.FC<SimpleSipClientProps> = ({ onBack }) => {
         authorizationUsername: username,
         authorizationPassword: password,
         transportOptions: {
-          server: webSocketServerUrl,
+          server: webSocketServer,
         },
         sessionDescriptionHandlerFactoryOptions: {
           peerConnectionConfiguration: {
@@ -113,31 +112,57 @@ const SimpleSipClient: React.FC<SimpleSipClientProps> = ({ onBack }) => {
           <form>
             <div>
               <TextField id="standard-basic" label="SIP Server" onChange={(e) => setSipServer(e.target.value)} variant="standard" color="primary" style={{width: '400px', margin: '10px'}}/>
-            </div>
-            <div>
-              <TextField id="standard-basic" label="WebSocket Server" onChange={(e) => setWebSocketServer(e.target.value)} variant="standard" color="primary" style={{width: '400px', margin: '10px'}}/>
+                {/*
+                <label>
+                  SIP Server:
+                  <input type="text" value={sipServer} onChange={(e) => setSipServer(e.target.value)} />
+                </label>
+                */}
             </div>
             <div>
               <TextField id="standard-basic" label="Username" onChange={(e) => setUsername(e.target.value)} variant="standard" color="primary" style={{width: '400px', margin: '10px'}}/>
+              {/*
+              <label>
+                Username:
+                <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
+              </label>
+              */}
             </div>
             <div>
               <TextField id="standard-basic" label="Password" onChange={(e) => setPassword(e.target.value)} variant="standard" color="primary" style={{width: '400px', margin: '10px'}}/>
+                {/*
+                <label>
+                  Password:
+                  <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                </label>
+                */}
             </div>
             <Button style={{width: '150px', margin: '50px'}} color='success' onClick={handleRegister} variant='outlined'>Register</Button>
+            {/*
+            <button type="button" onClick={handleRegister}>
+              Register
+            </button>
+            */}
           </form>
         )}
       </div>
       <div>
         <TextField id="standard-basic" label="Target" onChange={(e) => setTarget(e.target.value)} disabled={!isRegistered} variant="standard" color="primary" style={{width: '400px', margin: '10px'}}/>
+          {/*
+          <label>
+            Target:
+            <input type="text" value={target} onChange={(e) => setTarget(e.target.value)} disabled={!isRegistered} />
+          </label>
+          */}
       </div>
-      <Stack direction="row" alignItems="center" justifyContent="center" spacing={3}>
-        <Button style={{width: '100px', margin: '5px'}} onClick={handleHold} disabled={!isInCall} variant='outlined' color='secondary'>Hold</Button>
-        <Button style={{width: '100px', margin: '5px'}} onClick={handleHangup} disabled={!isInCall} variant='outlined' color='error'>Hang Up</Button>
-      </Stack>
-      <Stack direction="row" alignItems="center" justifyContent="center" spacing={3}>
-        <Button style={{width: '180px', margin: '10px'}} onClick={() => handleCall(false)} disabled={!isRegistered || !target} variant='contained' color='success'>Call (Audio)</Button>
-        <Button style={{width: '180px', margin: '10px'}} onClick={() => handleCall(true)} disabled={!isRegistered || !target} variant='outlined' color='success'>Call (Video)</Button>
-      </Stack>
+        <Stack direction="row" alignItems="center" justifyContent="center" spacing={3}>
+          <Button style={{width: '100px', margin: '5px'}} onClick={handleHold} disabled={!isInCall} variant='outlined' color='secondary'>Hold</Button>
+          <Button style={{width: '100px', margin: '5px'}} onClick={handleHangup} disabled={!isInCall} variant='outlined' color='error'>Hang Up</Button>
+        </Stack>
+        <Stack direction="row" alignItems="center" justifyContent="center" spacing={3}>
+          <Button style={{width: '180px', margin: '10px'}} onClick={() => handleCall(false)} disabled={!isRegistered || !target} variant='contained' color='success'>Call (Audio)</Button>
+          <Button style={{width: '180px', margin: '10px'}} onClick={() => handleCall(true)} disabled={!isRegistered || !target} variant='outlined' color='success'>Call (Video)</Button>
+        </Stack>
       <Button style={{width: '150px', margin: '50px'}} onClick={onBack} disabled={isInCall} variant='outlined'>Back to Home</Button>
       <div>
         <video ref={localVideoRef} autoPlay playsInline />
