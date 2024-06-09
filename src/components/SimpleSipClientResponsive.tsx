@@ -57,36 +57,45 @@ const SimpleSipClientResponsive: React.FC<SimpleSipClientResponsiveProps> = ({ o
   const handleRegister = () => {
     const uri = `sip:${username}@${sipServer}`;
     const webSocketServerUrl = `wss://${webSocketServer}/ws`;
-
+  
     const options: SimpleUserOptions = {
-      aor: uri,
-      media: {
-        constraints: { audio: true, video: true },
-        local: {
-          video: localVideoRef.current ?? undefined,
+        aor: uri,
+        media: {
+          constraints: { audio: true, video: true },
+          local: {
+            video: localVideoRef.current ?? undefined,
+          },
+          remote: {
+            video: remoteVideoRef.current ?? undefined,
+          },
         },
-        remote: {
-          video: remoteVideoRef.current ?? undefined,
-        },
-      },
-      userAgentOptions: {
-        authorizationUsername: username,
-        authorizationPassword: password,
-        transportOptions: {
-          server: webSocketServerUrl,
-        },
-        sessionDescriptionHandlerFactoryOptions: {
-          peerConnectionConfiguration: {
-            iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
-            rtcpMuxPolicy: 'require',
-            bundlePolicy: 'max-bundle',
+        userAgentOptions: {
+          authorizationUsername: username,
+          authorizationPassword: password,
+          transportOptions: {
+            server: webSocketServerUrl,
+          },
+          sessionDescriptionHandlerFactoryOptions: {
+            peerConnectionConfiguration: {
+              iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+              rtcpMuxPolicy: 'require',
+              bundlePolicy: 'max-bundle',
+              // Hier fügen wir DTLS-SRTP hinzu
+              sdpSemantics: 'unified-plan',
+              mandatory: {
+                OfferToReceiveAudio: true,
+                OfferToReceiveVideo: true
+              },
+              optional: [{
+                DtlsSrtpKeyAgreement: true
+              }]
+            }
           }
-        }
-      },
-    };
-
+        },
+      };
+  
     const simpleUser = new SimpleUser(uri, options);
-
+  
     simpleUser.delegate = {
       onRegistered: () => {
         console.log('Registered successfully');
@@ -119,14 +128,14 @@ const SimpleSipClientResponsive: React.FC<SimpleSipClientResponsiveProps> = ({ o
         setMessages((prevMessages) => [...prevMessages, `Them: ${message}`]);
       },
     };
-
+  
     simpleUser.connect().then(() => {
       simpleUser.register();
       console.log('Connected and registering');
     }).catch(error => {
       console.error('Connection error:', error);
     });
-
+  
     setUserAgent(simpleUser);
   };
 
