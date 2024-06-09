@@ -83,6 +83,10 @@ const SimpleSipClientResponsive: React.FC<SimpleSipClientResponsiveProps> = ({ o
             bundlePolicy: 'max-bundle',
             sdpSemantics: 'unified-plan',
           },
+          modifiers: [(description: { sdp: any; }) => {
+            console.log('SDP generated:', description.sdp);
+            return Promise.resolve(description);
+          }]
         },
       },
     };
@@ -182,6 +186,7 @@ const SimpleSipClientResponsive: React.FC<SimpleSipClientResponsiveProps> = ({ o
       setMessage('');
     }
   };
+
 
   return (
     <Box sx={{ p: 2 }}>
